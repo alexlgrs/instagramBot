@@ -1,3 +1,5 @@
+const fs = require("fs")
+const {DirectPendingInboxFeed} = require("instagram-private-api")
 const sendSucces = (text, message) => {
     message.reply("✅ | " + text)
 }
@@ -12,6 +14,27 @@ const sendRunning = (text, message) => {
 
 function getRdm(min, max) {
     return Math.random() * (max - min) + min;
+}
+
+async function checkInvits(ig){
+  
+  let invitations = new DirectPendingInboxFeed(ig)
+  let items = await invitations.items()
+
+  if(items.length != 0){
+    await ig.entity.directThread(items[0].thread_id).broadcastText("✅Bien ajouté \n📨Je répondrais désormais à vos messages\n📖 Faites help pour plus d'informations.")
+  }
+}
+function getCommands(){
+  var  commandsList = {}
+
+  fs.readdirSync("./commands").forEach(file => {
+      let command = require("../commands/" + file)
+
+      commandsList[command.help.name] = command
+  });
+
+  return commandsList
 }
 
 async function generateText(prompt) {
@@ -29,9 +52,10 @@ function log(text, emoji, time = Date.now()){
     console.log(emoji + " | " + text)
 }
 
+const {apiKey} = require("./params")
 const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-  apiKey: "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",
+  apiKey: apiKey,
 });
 
 const openai = new OpenAIApi(configuration);
@@ -51,5 +75,7 @@ module.exports = {
     sendRunning, 
     generateText,
     log,getRdm,
-    runCompletion
+    runCompletion,
+    getCommands,
+    checkInvits
 }
